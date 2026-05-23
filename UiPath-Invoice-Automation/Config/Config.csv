@@ -1,0 +1,16 @@
+Name,Value,Description
+OrchestratorQueueName,InvoiceQueue,Name of the Orchestrator Queue for invoice transactions
+MaxRetryNumber,3,Maximum number of retries for failed transactions
+RetryDelay,5000,Delay in milliseconds between retries
+EmailFolder,Invoices,Email folder to monitor for new invoices
+InvoiceOutputPath,C:\RPA\Output\Invoices,Local path to save processed invoices
+ERPSystemURL,https://erp.company.com/invoices,ERP system URL for posting invoices
+LogLevel,Info,Logging level (Info/Debug/Warning/Error)
+EnableScreenshots,True,Capture screenshots on errors
+MaxTransactionsPerRun,100,Max invoices to process per bot run
+NotificationEmail,rpa-alerts@company.com,Email for process notifications
+SMTPServer,smtp.company.com,SMTP server for sending notifications
+SMTPPort,587,SMTP port
+DocumentUnderstandingEndpoint,https://du.uipath.com,Document Understanding API endpoint
+ConfidenceThreshold,0.85,Minimum confidence score for extracted data
+ValidationRules,Amount>0;VendorName!=NULL;InvoiceDate!=NULL,Business validation rules

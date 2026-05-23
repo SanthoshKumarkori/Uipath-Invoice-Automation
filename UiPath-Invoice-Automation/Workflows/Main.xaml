@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ============================================================
+  WORKFLOW   : Main.xaml
+  DESCRIPTION: Entry point for Invoice Automation Bot.
+               Implements REFramework pattern:
+               1. Initialization
+               2. Get Transaction Data
+               3. Process Transaction
+               4. End Process
+  AUTHOR     : Your Name
+  VERSION    : 1.0.0
+  ============================================================
+-->
+<Activity
+  x:Class="UiPathInvoiceAutomation.Main"
+  xmlns="http://schemas.microsoft.com/netfx/2009/xaml/activities"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:ui="http://schemas.uipath.com/workflow/activities"
+  DisplayName="Main">
+
+  <!--
+  ┌─────────────────────────────────────────────────────┐
+  │              REFramework State Machine               │
+  │                                                     │
+  │  [Initial State]                                    │
+  │       ↓                                             │
+  │  [Initialization]  ──FAIL──→ [End Process]         │
+  │       ↓ SUCCESS                                     │
+  │  [Get Transaction Data] ←──────────────┐           │
+  │       ↓ NEW ITEM        ↓ NO MORE DATA │           │
+  │  [Process Transaction]  [End Process]  │           │
+  │       ↓ SUCCESS/RETRY/BUS.EX          │           │
+  │       └────────────────────────────────┘           │
+  └─────────────────────────────────────────────────────┘
+
+  ACTUAL IMPLEMENTATION:
+  This .xaml is the State Machine entry point.
+  Each state calls a separate workflow file:
+
+  → Framework/InitAllSettings.xaml
+      Reads Config.csv from Orchestrator Assets
+      Initializes logging, screenshots folder
+      Opens target applications (ERP system)
+
+  → Framework/GetTransactionData.xaml
+      Fetches next item from Orchestrator Queue
+      Returns: TransactionItem (QueueItem)
+      Sets: TransactionNumber, TransactionField1, etc.
+
+  → Process/ProcessTransaction.xaml
+      Downloads invoice attachment from email
+      Calls Document Understanding digitizer
+      Extracts: VendorName, InvoiceDate, Amount, LineItems
+      Validates extracted data against business rules
+      Posts validated data to ERP system
+      Marks queue item as Successful/Failed
+
+  → Framework/SetTransactionStatus.xaml
+      On Success  → Sets queue item status = Successful
+      On BizEx    → Sets queue item status = Failed (No Retry)
+      On SysEx    → Sets queue item status = Failed (Retry)
+      Sends notification email on failure
+
+  → Framework/CloseAllApplications.xaml
+      Closes ERP browser
+      Clears temp files
+      Sends summary report email
+  -->
+
+  <ui:StateMachine DisplayName="REFramework State Machine">
+    <ui:State DisplayName="Initialization">
+      <ui:State.Entry>
+        <ui:InvokeWorkflowFile WorkflowFileName="Framework/InitAllSettings.xaml" />
+      </ui:State.Entry>
+    </ui:State>
+
+    <ui:State DisplayName="Get Transaction Data">
+      <ui:State.Entry>
+        <ui:InvokeWorkflowFile WorkflowFileName="Framework/GetTransactionData.xaml" />
+      </ui:State.Entry>
+    </ui:State>
+
+    <ui:State DisplayName="Process Transaction">
+      <ui:State.Entry>
+        <ui:InvokeWorkflowFile WorkflowFileName="Workflows/ProcessTransaction.xaml" />
+      </ui:State.Entry>
+    </ui:State>
+
+    <ui:State DisplayName="End Process">
+      <ui:State.Entry>
+        <ui:InvokeWorkflowFile WorkflowFileName="Framework/CloseAllApplications.xaml" />
+      </ui:State.Entry>
+    </ui:State>
+  </ui:StateMachine>
+</Activity>
