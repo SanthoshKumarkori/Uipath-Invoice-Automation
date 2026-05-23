@@ -1,0 +1,58 @@
+# UiPath Project - .gitignore
+
+# ============================================
+# SENSITIVE FILES - NEVER COMMIT THESE
+# ============================================
+*.credentials
+*password*
+*secret*
+*apikey*
+*api_key*
+
+# ============================================
+# UIPATH BUILD & RUNTIME FILES
+# ============================================
+.entities/
+.objects/
+.local/
+.settings/
+*.nupkg
+*.nupkg.metadata
+
+# UiPath temporary files
+.screenshots/
+*.log
+
+# ============================================
+# OUTPUT & TEMP DIRECTORIES
+# ============================================
+Output/
+Archive/
+Temp/
+*.tmp
+
+# Test output
+Tests/TestOutput/
+Tests/Screenshots/
+
+# ============================================
+# WINDOWS FILES
+# ============================================
+Thumbs.db
+Desktop.ini
+*.lnk
+
+# ============================================
+# VISUAL STUDIO / VSCODE
+# ============================================
+.vs/
+.vscode/
+*.user
+*.suo
+
+# ============================================
+# KEEP THESE (force-include)
+# ============================================
+!Config/Config.csv
+!Tests/TestData/*.pdf
+!Documentation/

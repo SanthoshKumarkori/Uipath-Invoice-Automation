@@ -1,12 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ============================================================
   WORKFLOW   : InitAllSettings.xaml
   DESCRIPTION: Framework initialization workflow.
                Loads all configuration, sets up logging,
                initializes applications and validates
                environment before processing begins.
-  ============================================================
+
+  STEPS:
+  1. READ CONFIG FILE
+     Activity : Read CSV - Config.csv
+     Output   : Config As Dictionary(Of String, String)
+
+  2. OVERRIDE WITH ORCHESTRATOR ASSETS
+     Activity : Get Asset (for each sensitive config)
+     Assets   : ERPCredentials, EmailCredentials, DU_ApiKey
+     Purpose  : Never store passwords in config files!
+
+  3. VALIDATE ENVIRONMENT
+     Checks: Output folder, Archive folder, Screenshots folder,
+             ERP URL reachable, Email server reachable
+
+  4. INITIALIZE LOGGING
+     Activity : Add Log Fields
+     Fields   : BusinessProcessName, RobotType, EnvironmentName
+
+  5. OPEN APPLICATIONS
+     Open ERP system browser, Login, Navigate to Invoice dashboard
+
+  6. SEND INIT NOTIFICATION
+     Send email: "Invoice Bot Started" to Config("NotificationEmail")
 -->
 <Activity
   x:Class="UiPathInvoiceAutomation.InitAllSettings"
@@ -14,62 +36,6 @@
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
   xmlns:ui="http://schemas.uipath.com/workflow/activities"
   DisplayName="Initialize All Settings">
-
-  <!--
-  ════════════════════════════════════════════════════════
-  INITIALIZATION SEQUENCE
-  ════════════════════════════════════════════════════════
-
-  1. READ CONFIG FILE
-  ───────────────────
-  Activity : Read CSV → Config.csv
-  Output   : Config As Dictionary(Of String, String)
-  Keys loaded:
-    OrchestratorQueueName, MaxRetryNumber, RetryDelay,
-    EmailFolder, InvoiceOutputPath, ERPSystemURL,
-    LogLevel, EnableScreenshots, ConfidenceThreshold,
-    NotificationEmail, DocumentUnderstandingEndpoint
-
-  2. OVERRIDE WITH ORCHESTRATOR ASSETS
-  ──────────────────────────────────────
-  Activity : Get Asset (for each sensitive config)
-  Assets   :
-    → ERPCredentials     (Credential Asset)
-    → EmailCredentials   (Credential Asset)
-    → DU_ApiKey          (Text Asset)
-  Purpose  : Override CSV values with secure Orchestrator assets
-             Never store passwords in config files!
-
-  3. VALIDATE ENVIRONMENT
-  ───────────────────────
-  Checks:
-    → Output folder exists → Create if not
-    → Archive folder exists → Create if not
-    → Screenshots folder exists → Create if not
-    → ERP URL is reachable (HTTP ping)
-    → Email server is reachable
-
-  4. INITIALIZE LOGGING
-  ──────────────────────
-  Activity : Add Log Fields
-  Fields   :
-    → BusinessProcessName = "Invoice Automation"
-    → RobotType           = "Unattended"
-    → EnvironmentName     = "Production"
-
-  5. OPEN APPLICATIONS
-  ─────────────────────
-  → Open ERP system browser
-  → Login with Orchestrator credentials
-  → Navigate to Invoice dashboard
-  → Verify successful login (element exists check)
-
-  6. SEND INIT NOTIFICATION
-  ──────────────────────────
-  → Send email: "Invoice Bot Started - {DateTime.Now}"
-  → To: Config("NotificationEmail")
-  ════════════════════════════════════════════════════════
-  -->
 
   <ui:Sequence DisplayName="Initialization Sequence">
     <ui:Log DisplayName="Log - Init Started"
@@ -85,10 +51,10 @@
       WorkflowFileName="Framework/GetCredentials.xaml"
       DisplayName="Get Secure Credentials from Orchestrator" />
 
-    <!-- Validate Folders -->
+    <!-- Validate Folders and Connectivity -->
     <ui:InvokeWorkflowFile
       WorkflowFileName="Framework/ValidateEnvironment.xaml"
-      DisplayName="Validate Output Folders & Connectivity" />
+      DisplayName="Validate Output Folders and Connectivity" />
 
     <!-- Open ERP Application -->
     <ui:InvokeWorkflowFile
