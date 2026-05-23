@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  WORKFLOW   : InitAllSettings.xaml
+  DESCRIPTION: Framework initialization workflow.
+               Loads all configuration, sets up logging,
+               initializes applications and validates
+               environment before processing begins.
+
+  STEPS:
+  1. READ CONFIG FILE
+     Activity : Read CSV - Config.csv
+     Output   : Config As Dictionary(Of String, String)
+
+  2. OVERRIDE WITH ORCHESTRATOR ASSETS
+     Activity : Get Asset (for each sensitive config)
+     Assets   : ERPCredentials, EmailCredentials, DU_ApiKey
+     Purpose  : Never store passwords in config files!
+
+  3. VALIDATE ENVIRONMENT
+     Checks: Output folder, Archive folder, Screenshots folder,
+             ERP URL reachable, Email server reachable
+
+  4. INITIALIZE LOGGING
+     Activity : Add Log Fields
+     Fields   : BusinessProcessName, RobotType, EnvironmentName
+
+  5. OPEN APPLICATIONS
+     Open ERP system browser, Login, Navigate to Invoice dashboard
+
+  6. SEND INIT NOTIFICATION
+     Send email: "Invoice Bot Started" to Config("NotificationEmail")
+-->
+<Activity
+  x:Class="UiPathInvoiceAutomation.InitAllSettings"
+  xmlns="http://schemas.microsoft.com/netfx/2009/xaml/activities"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:ui="http://schemas.uipath.com/workflow/activities"
+  DisplayName="Initialize All Settings">
+
+  <ui:Sequence DisplayName="Initialization Sequence">
+    <ui:Log DisplayName="Log - Init Started"
+            Message="'[INIT] Invoice Automation Bot starting...'" />
+
+    <!-- Read Config -->
+    <ui:InvokeWorkflowFile
+      WorkflowFileName="Framework/ReadConfig.xaml"
+      DisplayName="Read Config.csv" />
+
+    <!-- Get Orchestrator Credentials -->
+    <ui:InvokeWorkflowFile
+      WorkflowFileName="Framework/GetCredentials.xaml"
+      DisplayName="Get Secure Credentials from Orchestrator" />
+
+    <!-- Validate Folders and Connectivity -->
+    <ui:InvokeWorkflowFile
+      WorkflowFileName="Framework/ValidateEnvironment.xaml"
+      DisplayName="Validate Output Folders and Connectivity" />
+
+    <!-- Open ERP Application -->
+    <ui:InvokeWorkflowFile
+      WorkflowFileName="Workflows/LoginToERP.xaml"
+      DisplayName="Open and Login to ERP System" />
+
+    <ui:Log DisplayName="Log - Init Complete"
+            Message="'[INIT] Initialization complete. Ready to process invoices.'" />
+  </ui:Sequence>
+</Activity>
